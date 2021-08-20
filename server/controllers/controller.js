@@ -13,21 +13,19 @@ exports.createPerson = async(req, res) => {
         });
 
         const response = await p.save();
-        res.status(201).json(response);
+        res.status(200).json(response);
     } else {
         res.status(409).json({ message: "Person already exists!" });
     }
 }
 
 exports.readPerson = async(req, res) => {
-    const { id } = req.params;
-
-    const foundPerson = await Person.findOne({ _id: id });
+    const foundPerson = await Person.findOne({ _id: req.params.id });
 
     if (!foundPerson || foundPerson.length == 0) {
         res.status(404).json({ message: "Person not found!" });
     } else {
-        res.status(302).json(foundPerson);
+        res.status(200).json(foundPerson);
     }
 }
 
@@ -42,25 +40,31 @@ exports.readAllPeople = async(req, res) => {
 }
 
 exports.updatePerson = async(req, res) => {
-    const { id } = req.params;
-    const foundPerson = await Person.findOne({ _id: id });
-
-    if (foundPerson || foundPerson.length == 0) {
-        const response = await Person.updateOne({ _id: new mongoose.Types.ObjectId(id) }, req.body);
-        res.status(301).json(response);
-    } else {
-        res.status(404).json({ message: "Person not found!" });
-    }
+    await Person.updateOne({ _id: req.params.id }, req.body)
+        .exec()
+        .then(result => {
+            if (result.nModified == 0) {
+                res.status(404).json({ message: "Person not found!" });
+            } else {
+                res.status(200).json({ message: "Person updated!" });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ error: err });
+        });
 }
 
 exports.deletePerson = async(req, res) => {
-    const { id } = req.params;
-    const foundPerson = await Person.findOne({ _id: id });
-
-    if (foundPerson || foundPerson.length == 0) {
-        const response = await Person.deleteOne({ _id: id });
-        res.status(202).json(response);
-    } else {
-        res.status(404).json({ message: "Person not found!" });
-    }
+    await Person.deleteOne({ _id: req.params.id })
+        .exec()
+        .then(result => {
+            if (result.deletedCount == 0) {
+                res.status(404).json({ message: "Person not found!" });
+            } else {
+                res.status(200).json({ message: "Person deleted!" });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ error: err });
+        });
 }

@@ -25,4 +25,6 @@ const db = mongoose.connect("mongodb://admin:password@localhost:27017/H5Node", {
 }).then((response) => {
     console.log('Connected to the database...');
     return response;
-});
+}).catch(err => {
+    console.log(err);
+})
